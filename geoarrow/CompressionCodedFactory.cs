@@ -18,7 +18,7 @@ public sealed class CompressionCodecFactory : ICompressionCodecFactory
         return compressionCodecType switch
         {
             CompressionCodecType.Lz4Frame => new Lz4CompressionCodec(compressionLevel),
-            //CompressionCodecType.Zstd => new ZstdCompressionCodec(compressionLevel),
+            CompressionCodecType.Zstd => new ZstdCompressionCodec(compressionLevel),
             _ => throw new NotImplementedException($"Compression type {compressionCodecType} is not supported")
         };
     }
