@@ -3,9 +3,6 @@ using System;
 using Apache.Arrow.Compression;
 using Apache.Arrow.Ipc;
 
-/// <summary>
-/// Creates compression codec implementations for decompressing Arrow IPC data
-/// </summary>
 public sealed class CompressionCodecFactory : ICompressionCodecFactory
 {
     public ICompressionCodec CreateCodec(CompressionCodecType compressionCodecType)

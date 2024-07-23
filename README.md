@@ -23,3 +23,5 @@ using (var reader = new ArrowFileReader(fileStream,s))
     var geoms = recordBatch.Column(35);
 }
 ```
+
+Other testdata is from https://geoarrow.org/data.html
