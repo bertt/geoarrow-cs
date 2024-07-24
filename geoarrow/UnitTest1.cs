@@ -81,6 +81,33 @@ public class Tests
         Assert.Pass();
     }
 
+    [Test]
+    public async Task ReadBasinLine()
+    {
+        var file = "testfixtures/ns-water-basin_line.arrow";
+        var fileStream = File.OpenRead(file);
+        var compression = new CompressionCodecFactory();
+        using (var reader = new ArrowFileReader(fileStream, compression))
+        {
+            var recordBatch = await reader.ReadNextRecordBatchAsync();
+            Assert.That(recordBatch.Length == 255);
+
+            // read objectid of first record
+            var objectIdArray = (Int64Array)recordBatch.Column(0);
+            var firstObjectId = objectIdArray.GetValue(0);
+            Assert.That(firstObjectId == 1);
+
+            var featCodeStringArray = (StringArray)recordBatch.Column(1);
+            var firstFeatureCode = featCodeStringArray.GetString(0);
+            Assert.That(firstFeatureCode == "WABA50");
+
+            var geometryArray = (ListArray)recordBatch.Column(13);
+            var lines = geometryArray.ToNts();
+            Assert.That(lines.Count() == 256);
+            var verticesFirstLine = lines.First().Coordinates.Length;
+            Assert.That(verticesFirstLine == 405);
+        }
+    }
 
     [Test]
     public async Task Test1()

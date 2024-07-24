@@ -4,13 +4,13 @@ using NetTopologySuite.Geometries;
 namespace geoarrow;
 public static class ListArrayExtensions
 {
-    public static IEnumerable<Point> ToNts(this ListArray geometryArray)
+    public static IEnumerable<Geometry> ToNts(this ListArray geometryArray)
     {
         var values = geometryArray.Values;
 
         var isInterleaved = values is FixedSizeListArray;
 
-        var points = isInterleaved? GetInterleavedPoints((FixedSizeListArray)values): GetPoints(geometryArray);
+        var points = isInterleaved? GetInterleavedPoints((FixedSizeListArray)values): GetGeometry(geometryArray);
 
         return points;
     }
@@ -30,33 +30,84 @@ public static class ListArrayExtensions
         return points;
     }
 
-    private static IEnumerable<Point> GetPoints(ListArray geometryArray)
+    private static IEnumerable<Geometry> GetGeometry(ListArray geometryArray)
+    {
+        if(geometryArray.Values is StructArray structArray)
+        {
+            var points = GetPoints(geometryArray);
+            return points;
+        }
+        else if(geometryArray.Values is ListArray listArray)
+        {
+            var lines = GetLines(listArray);
+            return lines;
+        }
+        else {
+            throw new NotImplementedException();
+        }
+    }
+
+    private static List<LineString> GetLines(ListArray listArray)
+    {
+        var lines = new List<LineString>();
+        for (int i = 0; i < listArray.Length; i++)
+        {
+            var values = (StructArray)listArray.GetSlicedValues(i);
+            var coordinates = GetCoordinates(values);
+            var line = new LineString(coordinates.ToArray());
+            lines.Add(line);
+        }
+
+        return lines;
+    }
+
+    private static List<Point> GetPoints(ListArray listArray)
     {
         var points = new List<Point>();
-        for (int i = 0; i < geometryArray.Length; i++)
+        for (int i = 0; i < listArray.Length; i++)
         {
-            var values = (StructArray)geometryArray.GetSlicedValues(i);
-            var xArray = (DoubleArray)values.Fields[0];
-            var x = xArray.GetValue(0);
-
-            var yArray = (DoubleArray)values.Fields[1];
-            var y = yArray.GetValue(0);
-
-            Point point;
-            if (values.Fields.Count > 2)
-            {
-                var zArray = (DoubleArray)values.Fields[2];
-                var z = zArray.GetValue(0);
-                point = new Point((double)x, (double)y, (double)z);
-            }
-            else
-            {
-                point = new Point((double)x, (double)y);
-            }
-
+            var values = (StructArray)listArray.GetSlicedValues(i);
+            var point = GetPoint(values);
             points.Add(point);
         }
 
         return points;
+    }
+
+    private static Point GetPoint(StructArray structArray)
+    {
+        var coordinate = GetCoordinate(structArray);
+        var point = new Point(coordinate);
+        return point;
+    } 
+
+    private static List<Coordinate> GetCoordinates(StructArray structArray)
+    {
+        var coordinates = new List<Coordinate>();
+        for (int i = 0; i < structArray.Length; i++)
+        {
+            var coordinate = GetCoordinate(structArray, i);
+            coordinates.Add(coordinate);
+        }
+
+        return coordinates;
+    }
+
+    private static Coordinate GetCoordinate(StructArray structArray, int i = 0)
+    {
+        // Point point;
+        var xArray = (DoubleArray)structArray.Fields[0];
+        var x = xArray.GetValue(i);
+
+        var yArray = (DoubleArray)structArray.Fields[1];
+        var y = yArray.GetValue(i);
+
+        if (structArray.Fields.Count > 2)
+        {
+            var zArray = (DoubleArray)structArray.Fields[2];
+            var z = zArray.GetValue(i);
+            return new CoordinateZ((double)x, (double)y, (double)z);
+        }
+        return new Coordinate((double)x, (double)y);
     }
 }
