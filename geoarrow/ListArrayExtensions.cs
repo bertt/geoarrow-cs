@@ -30,12 +30,12 @@ public static class ListArrayExtensions
         return points;
     }
 
-    private static IEnumerable<Geometry> GetGeometry(ListArray geometryArray)
+    private static IEnumerable<Geometry> GetGeometry(ListArray listArray)
     {
         return geometryArray.Values switch
         {
-            StructArray structArray => GetPoints(geometryArray),
-            ListArray listArray => GetLines(listArray),
+            StructArray => GetPoints(listArray),
+            ListArray => GetLines(listArray),
             _ => throw new NotImplementedException()
         };
     }
