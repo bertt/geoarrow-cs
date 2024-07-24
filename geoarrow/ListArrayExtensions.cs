@@ -32,19 +32,12 @@ public static class ListArrayExtensions
 
     private static IEnumerable<Geometry> GetGeometry(ListArray geometryArray)
     {
-        if(geometryArray.Values is StructArray structArray)
+        return geometryArray.Values switch
         {
-            var points = GetPoints(geometryArray);
-            return points;
-        }
-        else if(geometryArray.Values is ListArray listArray)
-        {
-            var lines = GetLines(listArray);
-            return lines;
-        }
-        else {
-            throw new NotImplementedException();
-        }
+            StructArray structArray => GetPoints(geometryArray),
+            ListArray listArray => GetLines(listArray),
+            _ => throw new NotImplementedException()
+        };
     }
 
     private static List<LineString> GetLines(ListArray listArray)
