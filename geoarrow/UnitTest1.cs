@@ -43,7 +43,6 @@ public class Tests
         Assert.Pass();
     }
 
-
     [Test]
     public async Task ReadBasinPoint()
     {
@@ -110,7 +109,24 @@ public class Tests
     }
 
     [Test]
-    public async Task Test1()
+    public async Task ReadBasinPolygon()
+    {
+        var file = "testfixtures/ns-water-basin_poly.arrow";
+        var fileStream = File.OpenRead(file);
+        var compression = new CompressionCodecFactory();
+        using (var reader = new ArrowFileReader(fileStream, compression))
+        {
+            var recordBatch = await reader.ReadNextRecordBatchAsync();
+            Assert.That(recordBatch.Length == 46);
+
+            var geometryArray = (ListArray)recordBatch.Column(7);
+            var polygons= geometryArray.ToNts();
+            Assert.That(polygons.Count() == 46);
+        }
+    }
+
+    [Test]
+    public async Task TestGemeenten()
     {
         var file = "testfixtures/gemeenten2016.arrow";
         var fileStream = File.OpenRead(file);
@@ -118,6 +134,10 @@ public class Tests
         using (var reader = new ArrowFileReader(fileStream,compression))
         {
             var recordBatch = await reader.ReadNextRecordBatchAsync();
+            var geometryArray = (ListArray)recordBatch.Column(35);
+            // todo!
+            var polygons = geometryArray.ToNts();
+
             Assert.That(recordBatch.Length == 391) ;
             var listArray = recordBatch.Column(35);
             var arrayData = listArray.Data;

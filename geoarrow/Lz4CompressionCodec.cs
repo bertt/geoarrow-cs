@@ -6,7 +6,7 @@ namespace Apache.Arrow.Compression
 {
     internal sealed class Lz4CompressionCodec : ICompressionCodec
     {
-        private readonly LZ4EncoderSettings _settings = null;
+        private readonly LZ4EncoderSettings? _settings;
 
         public Lz4CompressionCodec(int? compressionLevel = null)
         {
