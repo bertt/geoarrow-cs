@@ -109,6 +109,34 @@ public class Tests
     }
 
     [Test]
+    public async Task ReadBasinLineInterleaved()
+    {
+        var file = "testfixtures/ns-water-basin_line-interleaved.arrow";
+        var fileStream = File.OpenRead(file);
+        var compression = new CompressionCodecFactory();
+        using (var reader = new ArrowFileReader(fileStream, compression))
+        {
+            var recordBatch = await reader.ReadNextRecordBatchAsync();
+            Assert.That(recordBatch.Length == 255);
+
+            // read objectid of first record
+            var objectIdArray = (Int64Array)recordBatch.Column(0);
+            var firstObjectId = objectIdArray.GetValue(0);
+            Assert.That(firstObjectId == 1);
+
+            var featCodeStringArray = (StringArray)recordBatch.Column(1);
+            var firstFeatureCode = featCodeStringArray.GetString(0);
+            Assert.That(firstFeatureCode == "WABA50");
+
+            var geometryArray = (ListArray)recordBatch.Column(13);
+            var lines = geometryArray.ToNts();
+            Assert.That(lines.Count() == 256);
+            var verticesFirstLine = lines.First().Coordinates.Length;
+            Assert.That(verticesFirstLine == 405);
+        }
+    }
+
+    [Test]
     public async Task ReadBasinPolygon()
     {
         var file = "testfixtures/ns-water-basin_poly.arrow";
@@ -122,8 +150,31 @@ public class Tests
             var geometryArray = (ListArray)recordBatch.Column(7);
             var polygons= geometryArray.ToNts();
             Assert.That(polygons.Count() == 46);
+            var firstPolygon = polygons.First();
+            Assert.That(firstPolygon.Coordinates.Length == 1211);
         }
     }
+
+    [Test]
+    public async Task ReadBasinPolygonInterleaved()
+    {
+        var file = "testfixtures/ns-water-basin_poly-interleaved.arrow";
+        var fileStream = File.OpenRead(file);
+        var compression = new CompressionCodecFactory();
+        using (var reader = new ArrowFileReader(fileStream, compression))
+        {
+            var recordBatch = await reader.ReadNextRecordBatchAsync();
+            Assert.That(recordBatch.Length == 46);
+
+            var geometryArray = (ListArray)recordBatch.Column(7);
+            var polygons = geometryArray.ToNts();
+            Assert.That(polygons.Count() == 46);
+            var firstPolygon = polygons.First();
+            Assert.That(firstPolygon.Coordinates.Length == 1211+1);
+
+        }
+    }
+
 
     [Test]
     public async Task TestGemeenten()

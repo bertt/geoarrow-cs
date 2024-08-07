@@ -42,6 +42,9 @@
     <None Update="testfixtures\ns-water-basin_point.arrow">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="testfixtures\ns-water-basin_poly-interleaved.arrow">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="testfixtures\ns-water-basin_poly.arrow">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

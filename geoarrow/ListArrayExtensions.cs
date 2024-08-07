@@ -1,6 +1,6 @@
 ﻿using Apache.Arrow;
+using NetTopologySuite.Algorithm;
 using NetTopologySuite.Geometries;
-using System.Diagnostics;
 
 namespace geoarrow;
 public static class ListArrayExtensions
@@ -9,11 +9,63 @@ public static class ListArrayExtensions
     {
         var values = listArray.Values;
 
-        var isInterleaved = values is FixedSizeListArray;
+        var isInterleavedPoints = values is FixedSizeListArray && ((FixedSizeListArray)values).Values is DoubleArray;
+        var isInterleavedLines = values is ListArray && ((ListArray)values).Values is FixedSizeListArray ;
+        var isInterleavedPolygons = values is ListArray && ((ListArray)values).Values is ListArray && ((ListArray)(((ListArray)values).Values)).Values is FixedSizeListArray;
 
-        var points = isInterleaved ? GetInterleavedPoints((FixedSizeListArray)values) : GetGeometries(listArray);
+        IEnumerable<Geometry> result = null;
+        if (isInterleavedPoints)
+        {
+            result = GetInterleavedPoints((FixedSizeListArray)values);
+        }
+        else if (isInterleavedLines)
+        {
+            result = GetLinesInterleaved((ListArray)values);
+        }
+        else if(isInterleavedPolygons)
+        {
+            result = GetPolysInterleaved((ListArray)values);
+        }
+        else
+        {
+            result = GetGeometries(listArray);
+        }
 
-        return points;
+        return result;
+    }
+
+    private static IEnumerable<Geometry>? GetPolysInterleaved(ListArray listArray)
+    {
+        var polygons = new List<Polygon>();
+        for (int i = 0; i < listArray.Length; i++)
+        {
+            var offset = listArray.ValueOffsets[i];
+            var length = listArray.ValueOffsets[i + 1] - offset;
+
+            var d = (ListArray)listArray.Values;
+            var linedata = (ListArray)d.Slice(offset, length);
+
+            // use StructArray from values
+            var fsl = (FixedSizeListArray)linedata.Values;
+
+            var lines = GetLinesInterleaved(linedata);
+
+            // get the first line
+            // todo what if there are many lines?
+            var line = lines.ToArray().First();
+
+            // close the line
+            if(line.Coordinates.First() != line.Coordinates.Last())
+            {
+                line = new LineString(line.Coordinates.Concat(new Coordinate[] { line.Coordinates.First() }).ToArray());
+            }
+
+            var ring = new LinearRing(line.Coordinates.ToArray());
+            var poly = new Polygon(ring);
+            polygons.Add(poly);
+        }
+
+        return polygons;
     }
 
     private static IEnumerable<Point> GetInterleavedPoints(FixedSizeListArray listArray)
@@ -92,6 +144,25 @@ public static class ListArrayExtensions
         {
             throw new NotImplementedException();
         }
+    }
+
+
+    private static List<LineString> GetLinesInterleaved(ListArray listArray)
+    {
+        var lines = new List<LineString>();
+        var values = (FixedSizeListArray)listArray.Values;
+        for (int i = 0; i < listArray.Length; i++)
+        {
+            var offset = listArray.ValueOffsets[i];
+            var length = listArray.ValueOffsets[i + 1] - offset;
+
+            // get the values for this line
+            var data = (FixedSizeListArray)values.Slice(offset, length);
+            var line = GetInterleavedPoints(data);
+            lines.Add(new LineString(line.Select(p => p.Coordinate).ToArray()));
+        }
+
+        return lines;
     }
 
 
