@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{BA603CD8-5
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "geoarrow.tests", "geoarrow.tests\geoarrow.tests.csproj", "{0CEE7B3E-A0B6-4C01-A1EC-1C4D268A5080}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{5683ED00-03A7-4EDB-A260-93F823B53D2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5683ED00-03A7-4EDB-A260-93F823B53D2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5683ED00-03A7-4EDB-A260-93F823B53D2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CEE7B3E-A0B6-4C01-A1EC-1C4D268A5080}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CEE7B3E-A0B6-4C01-A1EC-1C4D268A5080}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CEE7B3E-A0B6-4C01-A1EC-1C4D268A5080}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CEE7B3E-A0B6-4C01-A1EC-1C4D268A5080}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
